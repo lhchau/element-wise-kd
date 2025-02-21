@@ -22,7 +22,7 @@ def get_tiny_imagenet(
     data_test = datasets.ImageFolder(os.path.join('.', 'data', 'tiny-imagenet-200', 'test'), transform_test)
     
     train_dataloader = torch.utils.data.DataLoader(
-        data_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True, drop_last=True)
+        data_train, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
     test_dataloader = torch.utils.data.DataLoader(
         data_test, batch_size=100, shuffle=False, num_workers=4, pin_memory=True)
     

@@ -3,55 +3,6 @@ import os
 from .utils import *
 from .bypass_bn import *
 
-def loop_one_epoch_self_knowledge_distillation(
-    dataloader,
-    student,
-    criterion,
-    optimizer,
-    device,
-    logging_dict,
-    epoch
-    ):
-    loss = 0
-    total = 0
-    correct = 0 
-    student.train()
-    for batch_idx, (inputs, targets) in enumerate(dataloader):
-        inputs, targets = inputs.to(device), targets.to(device)
-        with torch.no_grad():
-            teacher_logits = student(inputs)
-        if batch_idx != 0 or epoch != 0:
-            optimizer.step()
-        optimizer.zero_grad()
-        opt_name = type(optimizer).__name__
-        criterion_name = type(criterion).__name__
-        if opt_name == 'SGD':
-            outputs = student(inputs)
-            if batch_idx != 0 or epoch != 0:
-                if criterion_name == 'DynamicKDLoss':
-                    first_loss = criterion(teacher_logits, outputs, targets, epoch)
-                else:
-                    first_loss = criterion(teacher_logits, outputs, targets)
-            else: 
-                _criterion = nn.CrossEntropyLoss()
-                first_loss = _criterion(outputs, targets)
-            if (batch_idx + 1) == len(dataloader):
-                logging_dict['Train/ce_loss'] = criterion.ce_loss
-                logging_dict['Train/kl_loss'] = criterion.kl_loss
-            first_loss.backward()
-                    
-        with torch.no_grad():
-            loss += float(torch.mean(first_loss).item())
-            loss_mean = loss/(batch_idx+1)
-            _, predicted = outputs.max(1)
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
-            acc = 100.*correct/total
-            progress_bar(batch_idx, len(dataloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'% (loss_mean, acc, correct, total))
-    logging_dict[f'Train/loss'] = loss_mean
-    logging_dict[f'Train/acc'] = acc
-
-
 def loop_one_epoch_sam_kl(
     dataloader,
     student,
@@ -98,7 +49,6 @@ def loop_one_epoch_sam_kl(
     logging_dict[f'Train/loss'] = loss_mean
     logging_dict[f'Train/acc'] = acc
     
-   
 
 def loop_one_epoch_knowledge_distillation(
     dataloader,
@@ -126,9 +76,6 @@ def loop_one_epoch_knowledge_distillation(
             teacher_logits = teacher(inputs)
         if opt_name == 'SGD':
             outputs = student(inputs)
-            # if criterion_name == 'DynamicKDLoss':
-            #     first_loss = criterion(teacher_logits, outputs, targets, epoch)
-            # else:
             
             if (batch_idx + 1) != len(dataloader):
                 first_loss = criterion(teacher_logits, outputs, targets, mode='normal')

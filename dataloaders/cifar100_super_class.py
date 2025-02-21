@@ -63,12 +63,9 @@ fine_to_coarse = {
 class CIFAR100_SUPERCLASS(torchvision.datasets.CIFAR100):
     def _load_meta(self) -> None:
         path = os.path.join(self.root, self.base_folder, self.meta["filename"])
-        # if not check_integrity(path, self.meta["md5"]):
-            # raise RuntimeError("Dataset metadata file not found or corrupted. You can use download=True to download it")
         with open(path, "rb") as infile:
             data = pickle.load(infile, encoding="latin1")
             self.classes = data[self.meta["key"]]
-            # self.superclass_dict = data['coarse_label_names']
         self.class_to_idx = {_class: i for i, _class in enumerate(self.classes)}
         self.coarse_class_to_idx = {_class: i for i, _class in  enumerate(data['coarse_label_names'])}
         
@@ -84,15 +81,15 @@ def get_cifar100_super_class(
     batch_size=128,
     num_workers=4):
     transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(32, padding=8),
         transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
     ])
 
     transform_test = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
     ])
     
     data_train = CIFAR100_SUPERCLASS(root='./data', train=True, download=True, transform=transform_train)

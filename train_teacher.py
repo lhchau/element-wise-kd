@@ -10,11 +10,12 @@ from utils import *
 from dataloaders import *
 from optimizers import *
 
-current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 ################################
 #### 0. SETUP CONFIGURATION
 ################################
+current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
 cfg = exec_configurator()
 initialize(cfg['trainer']['seed'])
 
@@ -24,7 +25,6 @@ best_acc, start_epoch, logging_dict = 0, 0, {}
 # Total number of training epochs
 EPOCHS = cfg['trainer']['epochs'] 
 
-scheduler = cfg['trainer'].get('scheduler', None)
 print('==> Initialize Logging Framework..')
 logging_name = 'T_' + get_logging_name(cfg)
 logging_name += ('_' + current_time)
@@ -33,6 +33,7 @@ framework_name = cfg['logging']['framework_name']
 if framework_name == 'wandb':
     wandb.init(project=cfg['logging']['project_name'], name=logging_name, config=cfg)
 pprint.pprint(cfg)
+
 ################################
 #### 1. BUILD THE DATASET
 ################################
@@ -41,8 +42,8 @@ train_dataloader, test_dataloader, num_classes = get_dataloader(**cfg['dataloade
 ################################
 #### 2. BUILD THE NEURAL NETWORK
 ################################
-teacher_model = get_model(**cfg['teacher_model'], num_classes=num_classes)
-teacher_model = teacher_model.to(device)
+teacher_model_name = cfg['teacher_model'].pop('model_name', None)
+teacher_model = model_dict[teacher_model_name](num_classes=num_classes, **cfg['teacher_model'])
 total_params = sum(p.numel() for p in teacher_model.parameters())
 print(f'==> Number of parameters in Teacher: {cfg["teacher_model"]}: {total_params}')
 
@@ -52,10 +53,7 @@ print(f'==> Number of parameters in Teacher: {cfg["teacher_model"]}: {total_para
 criterion = nn.CrossEntropyLoss()
 opt_name = cfg['optimizer'].pop('opt_name', None)
 optimizer = get_optimizer(teacher_model, opt_name, cfg['optimizer'])
-if scheduler == 'step':
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[int(EPOCHS * 0.5), int(EPOCHS * 0.75)])
-elif scheduler == 'cosine':
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
+scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[150, 180, 210], gamma=0.1)
 
 ################################
 #### 3.b Training 
