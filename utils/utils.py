@@ -64,17 +64,17 @@ def get_logging_name(cfg):
                 logging_name += f'_{in_key[:2]}={_in_value}'
         else:
             logging_name += f'_{key[:2]}={value}'
-            
-    logging_name += 'S_MOD'
-    for key, value in cfg['student_model'].items():
-        if isinstance(value, dict):
-            for in_key, in_value in value.items():
-                if isinstance(in_value, str):
-                    _in_value = in_value[:5]
-                else: _in_value = in_value
-                logging_name += f'_{in_key[:2]}={_in_value}'
-        else:
-            logging_name += f'_{key[:2]}={value}'
+    if 'student_model' in cfg:
+        logging_name += 'S_MOD'
+        for key, value in cfg['student_model'].items():
+            if isinstance(value, dict):
+                for in_key, in_value in value.items():
+                    if isinstance(in_value, str):
+                        _in_value = in_value[:5]
+                    else: _in_value = in_value
+                    logging_name += f'_{in_key[:2]}={_in_value}'
+            else:
+                logging_name += f'_{key[:2]}={value}'
         
     logging_name += '_OPT'
     for key, value in cfg['optimizer'].items():

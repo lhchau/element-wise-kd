@@ -44,8 +44,9 @@ train_dataloader, test_dataloader, num_classes = get_dataloader(**cfg['dataloade
 ################################
 teacher_model_name = cfg['teacher_model'].pop('model_name', None)
 teacher_model = model_dict[teacher_model_name](num_classes=num_classes, **cfg['teacher_model'])
+teacher_model = teacher_model.to(device)
 total_params = sum(p.numel() for p in teacher_model.parameters())
-print(f'==> Number of parameters in Teacher: {cfg["teacher_model"]}: {total_params}')
+print(f'==> Number of parameters in Teacher: {teacher_model_name}: {total_params}')
 
 ################################
 #### 3.a OPTIMIZING MODEL PARAMETERS
