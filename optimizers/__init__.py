@@ -1,5 +1,6 @@
 from torch.optim import SGD
 from .sam import SAM
+from .dot import DistillationOrientedTrainer
 
 def get_optimizer(
     net,
@@ -9,5 +10,7 @@ def get_optimizer(
         return SGD(net.parameters(), **opt_hyperpara)
     elif opt_name == 'sam':
         return SAM(net.parameters(), **opt_hyperpara)
+    elif opt_name == 'dot':
+        return DistillationOrientedTrainer(net.parameters(), **opt_hyperpara)
     else:
         raise ValueError("Invalid optimizer!!!")

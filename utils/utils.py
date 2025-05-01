@@ -11,8 +11,83 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.init as init
-from PIL import Image
 import torchvision.transforms as transforms
+
+
+def _get_other_mask(logits, target):
+    target = target.reshape(-1)
+    mask = torch.ones_like(logits).scatter_(1, target.unsqueeze(1), 0)
+    return mask
+
+def _get_gt_mask(logits, target):
+    target = target.reshape(-1)
+    mask = torch.zeros_like(logits).scatter_(1, target.unsqueeze(1), 1)
+    return mask
+
+def target_sum(logits_student, logits_teacher, targets, beta=0.5):
+    gt_mask = _get_gt_mask(logits_student, targets)
+    other_mask = _get_other_mask(logits_student, targets)
+    return logits_teacher * beta + gt_mask * logits_student * (1 - beta) + other_mask * logits_teacher * (1 - beta)
+
+def non_target_sum(logits_student, logits_teacher, targets, beta=0.5):
+    gt_mask = _get_gt_mask(logits_student, targets)
+    other_mask = _get_other_mask(logits_student, targets)
+    return logits_teacher * beta + other_mask * logits_student * (1 - beta) + gt_mask * logits_teacher * (1 - beta)
+    
+def scale_logits(logit_t1, logit_t2):
+    pos_logit_t1 = torch.sum(torch.abs(logit_t1), dim=1, keepdim=True) / 2
+    pos_logit_t2 = torch.sum(torch.abs(logit_t2), dim=1, keepdim=True) / 2
+    return logit_t1 * pos_logit_t2 / pos_logit_t1
+
+def normalize_teacher_logit(z_T, z_V, epsilon=1e-6):
+    mu_T, sigma_T = z_T.mean(dim=-1, keepdim=True), z_T.std(dim=-1, keepdim=True)
+    mu_V, sigma_V = z_V.mean(dim=-1, keepdim=True), z_V.std(dim=-1, keepdim=True)
+    z_T_normalized = mu_V + sigma_V * (z_T - mu_T) / (sigma_T + epsilon)
+    return z_T_normalized
+
+def new_weighted_projection(logit_t1, logit_t2, beta=0.5):
+    norm_t1 = torch.sqrt(torch.sum(logit_t1 * logit_t1, dim=1, keepdim=True))
+    norm_t2 = torch.sqrt(torch.sum(logit_t2 * logit_t2, dim=1, keepdim=True))
+
+    cosine = torch.sum(logit_t1 * logit_t2, dim=1, keepdim=True) / (norm_t1 * norm_t2 + 1e-8)
+    coeff = cosine * norm_t1 / norm_t2
+    proj_t1_on_t2 = coeff * logit_t2
+    
+    new_logit = beta * logit_t2 + (1 - beta) * proj_t1_on_t2 # beta * logit_t1 + (1 - beta) * cosine * logit_t2 * norm_t1 / norm_t2
+    return new_logit
+
+def weighted_projection(logit_t1, logit_t2, beta=0.5):
+    norm_t1 = torch.sqrt(torch.sum(logit_t1 * logit_t1, dim=1, keepdim=True))
+    norm_t2 = torch.sqrt(torch.sum(logit_t2 * logit_t2, dim=1, keepdim=True))
+
+    cosine = torch.sum(logit_t1 * logit_t2, dim=1, keepdim=True) / (norm_t1 * norm_t2 + 1e-8)
+    coeff = cosine * norm_t1 / norm_t2
+    proj_t1_on_t2 = coeff * logit_t2
+    
+    residual = logit_t1 - proj_t1_on_t2
+    new_logit = proj_t1_on_t2 + beta * residual # beta * logit_t1 + (1 - beta) * cosine * logit_t2 * norm_t1 / norm_t2
+    return new_logit
+
+def cosine_adaptive(logit_t1, logit_t2, beta=0.5):
+    norm_t1 = torch.sqrt(torch.sum(logit_t1 * logit_t1, dim=1, keepdim=True))
+    norm_t2 = torch.sqrt(torch.sum(logit_t2 * logit_t2, dim=1, keepdim=True))
+
+    cosine = torch.sum(logit_t1 * logit_t2, dim=1, keepdim=True) / (norm_t1 * norm_t2 + 1e-8)
+    
+    new_logit = logit_t1 * cosine + (1 - cosine) * logit_t2 
+    return new_logit
+
+def accuracy(output, target, topk=(1,)):
+    with torch.no_grad():
+        maxk = max(topk)
+        _, pred = output.topk(maxk, 1, True, True)
+        pred = pred.t()
+        correct = pred.eq(target.reshape(1, -1).expand_as(pred))
+        res = []
+        for k in topk:
+            correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
+            res.append(correct_k)
+        return res
 
 def get_cosine_similarity(grads1, grads2, layer_names):
     def cosine_similarity(grad1, grad2):

@@ -219,18 +219,21 @@ def vgg19_bn(**kwargs):
 
 
 if __name__ == '__main__':
-    import torch
+    # import torch
 
-    x = torch.randn(2, 3, 32, 32)
-    net = vgg19_bn(num_classes=100)
-    feats, logit = net(x, is_feat=True, preact=True)
+    # x = torch.randn(2, 3, 32, 32)
+    # net = resnet8x4(num_classes=20)
+    # feats, logit = net(x, is_feat=True, preact=True)
 
-    for f in feats:
-        print(f.shape, f.min().item())
-    print(logit.shape)
+    # for f in feats:
+    #     print(f.shape, f.min().item())
+    # print(logit.shape)
 
-    for m in net.get_bn_before_relu():
-        if isinstance(m, nn.BatchNorm2d):
-            print('pass')
-        else:
-            print('warning')
+    # for m in net.get_bn_before_relu():
+    #     if isinstance(m, nn.BatchNorm2d):
+    #         print('pass')
+    #     else:
+    #         print('warning')
+    net = vgg8(num_classes=100)
+    total_params = sum(p.numel() for p in net.parameters())
+    print(f'==> Number of parameters in Teacher: {total_params}')

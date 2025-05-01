@@ -17,6 +17,9 @@ from optimizers import *
 current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 cfg = exec_configurator()
+if cfg['teacher_model']['model_name'] in ['MobileNetV2', 'ShuffleV1', 'ShuffleV2']:
+    cfg['optimizer']['lr'] = 0.01
+
 initialize(cfg['trainer']['seed'])
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -60,11 +63,11 @@ scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[150, 180
 #### 3.b Training 
 ################################
 if __name__ == "__main__":
-    for epoch in range(start_epoch, EPOCHS):
+    for epoch in range(1, EPOCHS + 1):
         print('\nEpoch: %d' % epoch)
         loop_one_epoch(
             dataloader=train_dataloader,
-            net=teacher_model,
+            model=teacher_model,
             criterion=criterion,
             optimizer=optimizer,
             device=device,
@@ -74,7 +77,7 @@ if __name__ == "__main__":
             logging_name=logging_name)
         best_acc, acc = loop_one_epoch(
             dataloader=test_dataloader,
-            net=teacher_model,
+            model=teacher_model,
             criterion=criterion,
             optimizer=optimizer,
             device=device,
