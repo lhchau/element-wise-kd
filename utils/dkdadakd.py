@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import math
 
 class DKDADAKD(nn.Module):
-    def __init__(self, T: int = 2, dkd_alpha: float = 1, dkd_beta: float = 8, ce_weight: float = 1, kl_weight: float = 0.9):
+    def __init__(self, T: int = 2, dkd_alpha: float = 1, dkd_beta: float = 2, ce_weight: float = 1, kl_weight: float = 0.9, rho=20):
         super(DKDADAKD, self).__init__()
         assert T >= 1, "Temperature T should be in [1, +infty)"
         self.T = T
@@ -17,12 +17,13 @@ class DKDADAKD(nn.Module):
         self.nckd_loss = 0
         self.kl_loss = 0
         self.ce_loss = 0
+        self.rho = rho
 
     def forward(self, teacher_logits: torch.Tensor, student_logits: torch.Tensor, target: torch.Tensor, mode='normal') -> torch.Tensor:
         ce_loss = self.ce_criterion(student_logits, target)
         
         max_logit, _ = teacher_logits.max(dim=1)
-        T = max_logit / math.log(40)
+        T = max_logit / math.log(self.rho)
         nckd_loss = compute_nckd(student_logits, teacher_logits, target, T)
         tckd_loss = compute_tckd(student_logits, teacher_logits, target, T)
         self.ce_loss = ce_loss.item()
