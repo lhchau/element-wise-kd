@@ -56,7 +56,7 @@ teacher_model = teacher_model.to(device)
 # Teacher - Load checkpoint
 print(f'==> Load checkpoint for Teacher: {teacher_model_name}')
 assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-checkpoint = torch.load(teacher_path)
+checkpoint = torch.load(teacher_path, weights_only=False)
 teacher_model.load_state_dict(checkpoint['model'])
 
 ################################
