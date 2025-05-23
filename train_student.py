@@ -83,6 +83,8 @@ elif kd_type == 'adakd_gap':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='gap')
 elif kd_type == 'both_temp':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='both_temp')
+elif kd_type == 're_both_temp':
+    criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='re_both_temp')
 
 test_criterion = nn.CrossEntropyLoss()
 opt_name = cfg['optimizer'].pop('opt_name', None)
