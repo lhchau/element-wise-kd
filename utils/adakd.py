@@ -66,7 +66,6 @@ class ADAKD(nn.Module):
             with torch.no_grad():
                 stu_max_logit, _ = student_logits.max(dim=1)
                 stu_temp = stu_max_logit / self.rho
-                stu_temp = torch.minimum(tea_temp, stu_temp)
                 stu_temp.clip_(1, None)
             
             log_p_s = F.log_softmax(student_logits / stu_temp.unsqueeze(1), dim=-1)
