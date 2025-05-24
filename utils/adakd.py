@@ -62,6 +62,7 @@ class ADAKD(nn.Module):
             
             tea_max_logit, _ = teacher_logits.max(dim=1)
             tea_temp = tea_max_logit / self.rho
+            tea_temp.clip_(1, None)
             
             with torch.no_grad():
                 stu_max_logit, _ = student_logits.max(dim=1)
@@ -71,23 +72,6 @@ class ADAKD(nn.Module):
             log_p_s = F.log_softmax(student_logits / stu_temp.unsqueeze(1), dim=-1)
             p_t = F.softmax(teacher_logits / tea_temp.unsqueeze(1), dim=-1)
             kl_loss = F.kl_div(log_p_s, p_t, reduction='none') * (stu_temp * tea_temp).unsqueeze(1) / teacher_logits.shape[0]
-            kl_loss = kl_loss.sum()
-            
-            ce_loss = self.ce_criterion(student_logits, target)
-            
-            self.kl_loss = kl_loss.item()
-            self.ce_loss = ce_loss.item()
-            return self.kl_weight * kl_loss + self.ce_weight * ce_loss
-        
-        elif self.mode == 'lsd':
-            teacher_logits = normalize(teacher_logits)
-            student_logits = normalize(student_logits)
-            max_logit, _ = teacher_logits.max(dim=1)
-            T = max_logit / math.log(self.rho)
-            
-            p_s = F.log_softmax(student_logits / T.unsqueeze(1), dim=-1)
-            p_t = F.softmax(teacher_logits / T.unsqueeze(1), dim=-1)
-            kl_loss = F.kl_div(p_s, p_t, reduction='none') * (T).unsqueeze(1) / teacher_logits.shape[0]
             kl_loss = kl_loss.sum()
             
             ce_loss = self.ce_criterion(student_logits, target)

@@ -77,8 +77,6 @@ elif kd_type == 'adakd':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho)
 elif kd_type == 'dkdadakd':
     criterion = DKDADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho)
-elif kd_type == 'adakd_lsd':
-    criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='lsd')
 elif kd_type == 'adakd_gap':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='gap')
 elif kd_type == 'both_temp':
