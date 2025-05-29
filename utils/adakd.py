@@ -4,7 +4,8 @@ import torch.nn.functional as F
 import math
 
 def scale_normalize(logit):
-    mean = logit.mean(dim=-1, keepdims=True)
+    with torch.no_grad():
+        mean = logit.mean(dim=-1, keepdims=True)
     return (logit - mean)
 
 class ADAKD(nn.Module):
@@ -57,6 +58,8 @@ class ADAKD(nn.Module):
             return self.kl_weight * kl_loss + self.ce_weight * ce_loss
         
         elif self.mode == 're_both_temp':
+            ce_loss = self.ce_criterion(student_logits, target)
+            
             teacher_logits = scale_normalize(teacher_logits)
             student_logits = scale_normalize(student_logits)
             
@@ -74,7 +77,6 @@ class ADAKD(nn.Module):
             kl_loss = F.kl_div(log_p_s, p_t, reduction='none') * (stu_temp * tea_temp).unsqueeze(1) / teacher_logits.shape[0]
             kl_loss = kl_loss.sum()
             
-            ce_loss = self.ce_criterion(student_logits, target)
             
             self.kl_loss = kl_loss.item()
             self.ce_loss = ce_loss.item()

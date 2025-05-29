@@ -129,7 +129,7 @@ def get_norm(optimizer):
 def get_logging_name(cfg):
     logging_name = ''
     
-    logging_name += 'T_MOD'
+    logging_name += 'T'
     for key, value in cfg['teacher_model'].items():
         if isinstance(value, dict):
             for in_key, in_value in value.items():
@@ -140,7 +140,7 @@ def get_logging_name(cfg):
         else:
             logging_name += f'_{key[:2]}={value}'
     if 'student_model' in cfg:
-        logging_name += 'S_MOD'
+        logging_name += '_S'
         for key, value in cfg['student_model'].items():
             if isinstance(value, dict):
                 for in_key, in_value in value.items():
