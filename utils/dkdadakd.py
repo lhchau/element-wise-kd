@@ -8,7 +8,7 @@ def scale_normalize(logit):
     return (logit - mean)
 
 class DKDADAKD(nn.Module):
-    def __init__(self, T: int = 2, dkd_alpha: float = 1, dkd_beta: float = 2, ce_weight: float = 1, kl_weight: float = 0.9, rho=20):
+    def __init__(self, T: int = 2, dkd_alpha: float = 1, dkd_beta: float = 2, ce_weight: float = 1, kl_weight: float = 1, rho=3):
         super(DKDADAKD, self).__init__()
         assert T >= 1, "Temperature T should be in [1, +infty)"
         self.T = T
@@ -31,18 +31,19 @@ class DKDADAKD(nn.Module):
         
         tea_max_logit, _ = teacher_logits.max(dim=1)
         tea_temp = tea_max_logit / self.rho
+        tea_temp.clip_(1, None)
         
         with torch.no_grad():
             stu_max_logit, _ = student_logits.max(dim=1)
             stu_temp = stu_max_logit / self.rho
-            stu_temp = torch.minimum(tea_temp, stu_temp)
             stu_temp.clip_(1, None)
+            
         nckd_loss = compute_nckd(student_logits, teacher_logits, target, tea_temp, stu_temp)
         tckd_loss = compute_tckd(student_logits, teacher_logits, target, tea_temp, stu_temp)
         self.ce_loss = ce_loss.item()
         self.nckd_loss = nckd_loss.item()
         self.tckd_loss = tckd_loss.item()
-        return self.ce_weight * ce_loss + self.dkd_alpha * tckd_loss + self.dkd_beta * nckd_loss
+        return self.ce_weight * ce_loss + self.dkd_alpha * tckd_loss + self.dkd_beta * nckd_loss * self.kl_weight
         
 def compute_nckd(logits_student, logits_teacher, target, tea_temp, stu_temp):
     gt_mask = _get_gt_mask(logits_student, target)
@@ -61,28 +62,6 @@ def compute_tckd(logits_student, logits_teacher, target, tea_temp, stu_temp):
     log_pred_student = torch.log(pred_student)
     tckd_loss = F.kl_div(log_pred_student, pred_teacher, reduction='none') * (stu_temp * tea_temp).unsqueeze(1) / logits_teacher.shape[0]
     return tckd_loss.sum()
-
-# def dkd_loss(logits_student, logits_teacher, target, alpha, beta, temperature):
-#     gt_mask = _get_gt_mask(logits_student, target)
-#     other_mask = _get_other_mask(logits_student, target)
-#     pred_student = F.softmax(logits_student / temperature, dim=1)
-#     pred_teacher = F.softmax(logits_teacher / temperature, dim=1)
-#     pred_student = cat_mask(pred_student, gt_mask, other_mask)
-#     pred_teacher = cat_mask(pred_teacher, gt_mask, other_mask)
-#     log_pred_student = torch.log(pred_student)
-#     tckd_loss = (
-#         F.kl_div(log_pred_student, pred_teacher, reduction='sum')
-#         * (temperature**2)
-#         / target.shape[0]
-#     )
-#     pred_teacher_part2 = F.softmax(
-#         logits_teacher / temperature - 1000.0 * gt_mask, dim=1
-#     )
-#     log_pred_student_part2 = F.log_softmax(
-#         logits_student / temperature - 1000.0 * gt_mask, dim=1
-#     )
-#     nckd_loss = F.kl_div(log_pred_student_part2, pred_teacher_part2, reduction='batchmean') * (temperature**2)
-#     return alpha * tckd_loss + beta * nckd_loss
 
 def _get_gt_mask(logits, target):
     target = target.reshape(-1)

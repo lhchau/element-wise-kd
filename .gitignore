@@ -3,3 +3,5 @@ checkpoint
 data
 wandb
 archive
+runs
+logs

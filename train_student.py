@@ -31,9 +31,10 @@ assert teacher_path is not None, "Teacher path should not be None"
 
 kd_type = cfg['trainer'].get('kd_type', 'kd')
 T = cfg['trainer'].get('T', 4)
-kl_weight = cfg['trainer'].get('kl_weight', 0.9)
+kl_weight = cfg['trainer'].get('kl_weight', 1)
 ce_weight = cfg['trainer'].get('ce_weight', 1)
 rho = cfg['trainer'].get('rho', None)
+dkd_beta = cfg['trainer'].get('dkd_beta', None)
 pprint.pprint(cfg)
 
 ################################
@@ -42,6 +43,8 @@ pprint.pprint(cfg)
 print('==> Initialize Logging Framework..')
 logging_name = get_logging_name(cfg)
 logging_name += (f'_T={T}' + f'_kl_w={kl_weight}' + f'_ce_w={ce_weight}' + f'_kd_t={kd_type}' + f'_rho={rho}' + f'_seed={seed}' + f'_{current_time}')
+if kd_type == 'dkdadakd':
+    logging_name += f'_dkd_be={dkd_beta}'
 framework_name = cfg['logging']['framework_name']
 if framework_name == 'wandb':
     wandb.init(project=cfg['logging']['project_name'], name=logging_name, config=cfg)
@@ -84,13 +87,15 @@ if kd_type == 'kd':
 elif kd_type == 'adakd':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho)
 elif kd_type == 'dkdadakd':
-    criterion = DKDADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho)
+    criterion = DKDADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, dkd_beta=dkd_beta)
 elif kd_type == 'adakd_gap':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='gap')
 elif kd_type == 'both_temp':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='both_temp')
 elif kd_type == 're_both_temp':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='re_both_temp')
+elif kd_type == 'rho_free':
+    criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='rho_free')
 
 test_criterion = nn.CrossEntropyLoss()
 opt_name = cfg['optimizer'].pop('opt_name', None)
