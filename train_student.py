@@ -98,8 +98,12 @@ elif kd_type == 'both_temp':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='both_temp')
 elif kd_type == 're_both_temp':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='re_both_temp')
-elif kd_type == 'rho_free':
-    criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='rho_free')
+elif kd_type == 'adakd_conf':
+    criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='adakd_conf')
+elif kd_type == 'adakd_abs':
+    criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='adakd_abs')
+elif kd_type == 'adakd_abs_conf':
+    criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode='adakd_abs_conf')
 
 test_criterion = nn.CrossEntropyLoss()
 opt_name = cfg['optimizer'].pop('opt_name', None)
