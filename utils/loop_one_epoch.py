@@ -132,8 +132,8 @@ def loop_one_epoch_knowledge_distillation(dataloader, student, teacher, criterio
         with torch.no_grad():
             teacher_logits = teacher(inputs)
         outputs = student(inputs)
-        first_loss = criterion(teacher_logits, outputs, targets)
-        first_loss.backward(retain_graph=True)
+        first_loss = criterion(teacher_logits, outputs, targets, epoch)
+        first_loss.backward()
         optimizer.step()
         optimizer.zero_grad()
         ce_loss += criterion.ce_loss
