@@ -64,8 +64,8 @@ train_dataloader, test_dataloader, num_classes = get_dataloader(**cfg['dataloade
 teacher_model_name = cfg['teacher_model'].pop('model_name', None)
 student_model_name = cfg['student_model'].pop('model_name', None)
 if cfg['dataloader']['data_name'] == "imagenet":
-    teacher_model = imagenet_model_dict[teacher_model_name](pretrained=True)
-    model_student = imagenet_model_dict[student_model_name](pretrained=False)
+    teacher_model = imagenet_model_dict[teacher_model_name](pretrained=True).to(device)
+    student_model = imagenet_model_dict[student_model_name](pretrained=False).to(device)
 else:
     teacher_model = model_dict[teacher_model_name](num_classes=num_classes, **cfg['teacher_model'])
     teacher_model = teacher_model.to(device)

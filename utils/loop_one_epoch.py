@@ -128,12 +128,12 @@ def loop_one_epoch_knowledge_distillation(dataloader, student, teacher, criterio
     teacher.eval()
     student.train()
     for batch_idx, (inputs, targets) in enumerate(dataloader):
-        inputs, targets = inputs.to(device), targets.to(device)
+        inputs, targets = inputs.to(device, non_blocking=True), targets.to(device, non_blocking=True)
         with torch.no_grad():
             teacher_logits = teacher(inputs)
         outputs = student(inputs)
-        first_loss = criterion(teacher_logits, outputs, targets)
-        first_loss.backward(retain_graph=True)
+        first_loss = criterion(teacher_logits, outputs, targets, epoch)
+        first_loss.backward()
         optimizer.step()
         optimizer.zero_grad()
         ce_loss += criterion.ce_loss
@@ -151,7 +151,11 @@ def loop_one_epoch_knowledge_distillation(dataloader, student, teacher, criterio
             total += targets.size(0)
             acc = 100. * correct / total
             acc5 = 100. * correct5 / total
-            progress_bar(batch_idx, len(dataloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'% (loss_mean, acc, correct, total))
+            if batch_idx % 3 == 0 or (batch_idx + 1) == len(dataloader):
+                progress_bar(batch_idx, len(dataloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'% (loss_mean, acc, correct, total))
+        # del teacher_logits, outputs, inputs, targets
+        # torch.cuda.empty_cache()
+        
     logging_dict[f'Train/loss'] = loss_mean
     logging_dict[f'Train/acc5'] = acc5
     logging_dict[f'Train/acc'] = acc
@@ -162,7 +166,7 @@ def loop_one_epoch(dataloader, model, criterion, optimizer, device, logging_dict
     if loop_type == 'train': 
         model.train()
         for batch_idx, (inputs, targets) in enumerate(dataloader):
-            inputs, targets = inputs.to(device), targets.to(device)
+            inputs, targets = inputs.to(device, non_blocking=True), targets.to(device, non_blocking=True)
             
             outputs = model(inputs)
             first_loss = criterion(outputs, targets)
@@ -180,7 +184,10 @@ def loop_one_epoch(dataloader, model, criterion, optimizer, device, logging_dict
                 total += targets.size(0)
                 acc = 100. * correct / total
                 acc5 = 100. * correct5 / total
-                progress_bar(batch_idx, len(dataloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'% (loss_mean, acc, correct, total))
+                if batch_idx % 10 == 0 or (batch_idx + 1) == len(dataloader):
+                    progress_bar(batch_idx, len(dataloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'% (loss_mean, acc, correct, total))
+        # del outputs, inputs, targets
+        # torch.cuda.empty_cache()
                 
     elif loop_type == 'test':
         model.eval()
