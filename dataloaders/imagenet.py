@@ -12,7 +12,7 @@ data_folder = os.path.join('data/imagenet')
 class ImageNet(ImageFolder):
     def __getitem__(self, index):
         img, target = super().__getitem__(index)
-        return img, target, index
+        return img, target
 
 class ImageNetInstanceSample(ImageNet):
     """: Folder datasets which returns (img, label, index, contrast_index):
@@ -62,7 +62,7 @@ class ImageNetInstanceSample(ImageNet):
             sample_idx = np.hstack((np.asarray([pos_idx]), neg_idx))
             return img, target, index, sample_idx
         else:
-            return img, target, index
+            return img, target
 
 
 class MultipleApply:

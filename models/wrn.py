@@ -151,6 +151,20 @@ def wrn_16_1(**kwargs):
     model = WideResNet(depth=16, widen_factor=1, **kwargs)
     return model
 
+
+def wrn_28_2(**kwargs):
+    model = WideResNet(depth=28, widen_factor=2, **kwargs)
+    return model
+
+def wrn_28_4(**kwargs):
+    model = WideResNet(depth=28, widen_factor=4, **kwargs)
+    return model
+
+
+def wrn_16_4(**kwargs):
+    model = WideResNet(depth=16, widen_factor=4, **kwargs)
+    return model
+
 if __name__ == '__main__':
     # import torch
 

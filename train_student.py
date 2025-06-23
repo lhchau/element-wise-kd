@@ -88,6 +88,10 @@ else:
 ################################
 if kd_type == 'kd':
     criterion = KD(T=T, kl_weight=kl_weight, ce_weight=ce_weight)
+elif kd_type == 'ablation':
+    criterion = KD(T=T, kl_weight=kl_weight, ce_weight=ce_weight, mode=kd_type)
+elif kd_type == 'ablation_add':
+    criterion = KD(T=T, kl_weight=kl_weight, ce_weight=ce_weight, mode=kd_type)
 elif kd_type == 'adakd':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, warmup=warmup)
 elif kd_type == 'dkdadakd':
