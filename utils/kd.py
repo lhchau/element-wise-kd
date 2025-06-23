@@ -70,7 +70,7 @@ class KD(nn.Module):
             return final_loss
         
         elif self.mode == 'ablation_add':
-            ADD_CONST = 2
+            ADD_CONST = 1
             with torch.no_grad():
                 p_t = F.softmax(teacher_logits / self.T, dim=-1)
 
