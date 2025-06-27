@@ -17,7 +17,7 @@ from optimizers import *
 current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M")
 # Config
 cfg = exec_configurator()
-if cfg['student_model']['model_name'] in ['MobileNetV2', 'ShuffleV1', 'ShuffleV2']:
+if cfg['student_model']['model_name'] in ['MobileNetV2', 'ShuffleV1', 'ShuffleV2'] and cfg['dataloader']['data_name'] == 'cifar100':
     cfg['optimizer']['lr'] = 0.01
 # Initialization
 seed = cfg['trainer'].get('seed', 42)
@@ -91,6 +91,10 @@ if kd_type == 'kd':
 elif kd_type == 'ablation':
     criterion = KD(T=T, kl_weight=kl_weight, ce_weight=ce_weight, mode=kd_type)
 elif kd_type == 'ablation_add':
+    criterion = KD(T=T, kl_weight=kl_weight, ce_weight=ce_weight, mode=kd_type)
+elif kd_type == 'ablation2':
+    criterion = KD(T=T, kl_weight=kl_weight, ce_weight=ce_weight, mode=kd_type)
+elif kd_type == 'ablation_add2':
     criterion = KD(T=T, kl_weight=kl_weight, ce_weight=ce_weight, mode=kd_type)
 elif kd_type == 'adakd':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, warmup=warmup)

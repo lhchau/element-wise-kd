@@ -56,7 +56,7 @@ class MobileNetV2(nn.Module):
         feats["pooled_feat"] = avg
         feats["feats"] = [F.relu(feat1), F.relu(feat2), F.relu(feat3), F.relu(feat4)]
         feats["preact_feats"] = [feat1, feat2, feat3, feat4]
-        return out, feats
+        return out
 
     def get_bn_before_relu(self):
         bn1 = self.model[3][-2]
