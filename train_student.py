@@ -106,6 +106,8 @@ elif kd_type == 'adakd_conf':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode=kd_type, warmup=warmup)
 elif kd_type == 'adakd_stu_conf':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode=kd_type, warmup=warmup)
+elif kd_type == 'adakd_mean_conf':
+    criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode=kd_type, warmup=warmup)
 elif kd_type == 'adakd_abs':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode=kd_type, warmup=warmup)
 elif kd_type == 'adakd_abs_conf':
