@@ -99,7 +99,7 @@ elif kd_type == 'ablation_add2':
 elif kd_type == 'adakd':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, warmup=warmup)
 elif kd_type == 'dkdadakd':
-    criterion = DKDADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, dkd_beta=dkd_beta)
+    criterion = DKDADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, dkd_beta=dkd_beta, warmup=warmup)
 elif kd_type == 're_both_temp':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, mode=kd_type, warmup=warmup)
 elif kd_type == 'adakd_conf':

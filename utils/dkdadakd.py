@@ -8,7 +8,7 @@ def scale_normalize(logit):
     return (logit - mean)
 
 class DKDADAKD(nn.Module):
-    def __init__(self, T: int = 2, dkd_alpha: float = 1, dkd_beta: float = 2, ce_weight: float = 1, kl_weight: float = 1, rho=3):
+    def __init__(self, T: int = 2, dkd_alpha: float = 1, dkd_beta: float = 2, ce_weight: float = 1, kl_weight: float = 1, rho=3, mode='normal', warmup=1):
         super(DKDADAKD, self).__init__()
         assert T >= 1, "Temperature T should be in [1, +infty)"
         self.T = T
@@ -22,28 +22,31 @@ class DKDADAKD(nn.Module):
         self.kl_loss = 0
         self.ce_loss = 0
         self.rho = rho
+        self.mode = mode
+        self.warmup = warmup
 
-    def forward(self, teacher_logits: torch.Tensor, student_logits: torch.Tensor, target: torch.Tensor, mode='normal') -> torch.Tensor:
-        ce_loss = self.ce_criterion(student_logits, target)
-        
-        teacher_logits = scale_normalize(teacher_logits)
-        student_logits = scale_normalize(student_logits)
-        
-        tea_max_logit, _ = teacher_logits.max(dim=1)
-        tea_temp = tea_max_logit / self.rho
-        tea_temp.clip_(1, None)
-        
-        with torch.no_grad():
-            stu_max_logit, _ = student_logits.max(dim=1)
-            stu_temp = stu_max_logit / self.rho
-            stu_temp.clip_(1, None)
+    def forward(self, teacher_logits: torch.Tensor, student_logits: torch.Tensor, target: torch.Tensor, epoch) -> torch.Tensor:
+        if self.mode == 'normal':
+            ce_loss = self.ce_criterion(student_logits, target)
             
-        nckd_loss = compute_nckd(student_logits, teacher_logits, target, tea_temp, stu_temp)
-        tckd_loss = compute_tckd(student_logits, teacher_logits, target, tea_temp, stu_temp)
-        self.ce_loss = ce_loss.item()
-        self.nckd_loss = nckd_loss.item()
-        self.tckd_loss = tckd_loss.item()
-        return self.ce_weight * ce_loss + self.dkd_alpha * tckd_loss + self.dkd_beta * nckd_loss * self.kl_weight
+            teacher_logits = scale_normalize(teacher_logits)
+            student_logits = scale_normalize(student_logits)
+            
+            tea_max_logit, _ = teacher_logits.max(dim=1)
+            tea_temp = tea_max_logit / self.rho
+            tea_temp.clip_(1, None)
+            
+            with torch.no_grad():
+                stu_max_logit, _ = student_logits.max(dim=1)
+                stu_temp = stu_max_logit / self.rho
+                stu_temp.clip_(1, None)
+                
+            nckd_loss = compute_nckd(student_logits, teacher_logits, target, tea_temp, stu_temp)
+            tckd_loss = compute_tckd(student_logits, teacher_logits, target, tea_temp, stu_temp)
+            self.ce_loss = ce_loss.item()
+            self.nckd_loss = nckd_loss.item()
+            self.tckd_loss = tckd_loss.item()
+            return self.ce_weight * ce_loss + min(epoch / self.warmup, 1) * (self.dkd_alpha * tckd_loss + self.dkd_beta * nckd_loss * self.kl_weight)
         
 def compute_nckd(logits_student, logits_teacher, target, tea_temp, stu_temp):
     gt_mask = _get_gt_mask(logits_student, target)
