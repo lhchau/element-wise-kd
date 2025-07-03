@@ -29,7 +29,18 @@ class KD(nn.Module):
             self.kl_loss = kl_loss.item()
             self.ce_loss = ce_loss.item()
             return self.kl_weight * kl_loss + self.ce_weight * ce_loss
-        
+
+        elif self.mode == 'dTs':
+            p_s = F.log_softmax(student_logits / (self.T-1), dim=-1)
+            p_t = F.softmax(teacher_logits / self.T, dim=-1)
+            kl_loss = F.kl_div(p_s, p_t, reduction='batchmean') * (self.T * (self.T-1))
+            
+            ce_loss = self.ce_criterion(student_logits, target)
+            
+            self.kl_loss = kl_loss.item()
+            self.ce_loss = ce_loss.item()
+            return self.kl_weight * kl_loss + self.ce_weight * ce_loss
+
         elif self.mode == 'ce':
             ce_loss = self.ce_criterion(student_logits, target)
             self.ce_loss = ce_loss.item()

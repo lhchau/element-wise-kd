@@ -96,6 +96,8 @@ elif kd_type == 'ablation2':
     criterion = KD(T=T, kl_weight=kl_weight, ce_weight=ce_weight, mode=kd_type)
 elif kd_type == 'ablation_add2':
     criterion = KD(T=T, kl_weight=kl_weight, ce_weight=ce_weight, mode=kd_type)
+elif kd_type == 'dTs':
+    criterion = KD(T=T, kl_weight=kl_weight, ce_weight=ce_weight, mode=kd_type)
 elif kd_type == 'adakd':
     criterion = ADAKD(kl_weight=kl_weight, ce_weight=ce_weight, rho=rho, warmup=warmup)
 elif kd_type == 'dkdadakd':
