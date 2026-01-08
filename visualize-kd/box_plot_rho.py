@@ -427,8 +427,8 @@ data = pd.DataFrame({
 #     '5': '#d62728'    # red
 # }
 
-fontsize = 24
-number_size = 20
+fontsize = 28
+number_size = 26
 # Create the box plot with customizations
 plt.figure(figsize=(8, 6))
 sns.boxplot(x='Category', y='Value', data=data)

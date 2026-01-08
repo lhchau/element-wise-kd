@@ -579,15 +579,16 @@ CIFAR_VGG13_OURS = [3.9711, 3.9790, 3.9483, 3.9674, 3.9686, 3.9627, 3.9456, 3.96
         3.9463, 3.9547, 3.9076, 3.9713, 3.9469, 3.9746, 3.8738, 3.9515]
 
 
-# AT: 21.9ms, extra_params=0, ACC=73.5
+# KD: 15ms, extra=0, ACC=73.33
 # Fitnes: 18.4ms, extra=16768, ACC=73.44
-# RKD: 23.1ms, extra=0, ACC=71.90
-# CRD: 26.2ms, extra=12.865M, ACC=75.51
-# OFD: 26.9ms, extra=86912, ACC=74.95
-# ReviewKD: 33.2ms, extra=1.8m, ACC=75.63
+# AT: 21.9ms, extra_params=0, ACC=73.5
+# CRD: 33ms, extra=12.865M, ACC=75.51
+# OFD: 23ms, extra=86912, ACC=74.95
+# ReviewKD: 25ms, extra=1.8m, ACC=75.63
+# DKD: 16ms, extra=0, ACC=76.32
+# WTTM: 15ms, extra=0, ACC=76.06
+# KD+LS: 15ms, extra=0, ACC=76.62
+# ATS: 15ms, extra=0, ACC=76.96
+
 # CAT-KD: 19ms, extra=0, ACC=76.91
-# DKD: 19ms, extra=0, ACC=76.32
-# KD: 17.8ms, extra=0, ACC=73.33
-# WTTM: 17.5ms, extra=0, ACC=76.06
-# KD+LS: 19ms, extra=0, ACC=76.62
-# ATS: 18.5ms, extra=0, ACC=76.96
+# RKD: 23ms, extra=0, ACC=71.90

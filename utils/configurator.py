@@ -42,7 +42,6 @@ def exec_configurator():
                 attempt = val
             # ensure the types match ok
             # assert type(attempt) == type(globals()[key])
-            # cross fingers
             print(f"Overriding: {key} = {attempt}")
             cfg[parent_key][child_key] = attempt
     return cfg
